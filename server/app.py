@@ -44,9 +44,29 @@ api.add_resource(Plants, '/plants')
 class PlantByID(Resource):
 
     def get(self, id):
-        plant = Plant.query.filter_by(id=id).first().to_dict()
-        return make_response(jsonify(plant), 200)
-
+        plant = db.session.get(Plant, id)
+        return make_response(plant.to_dict(), 200)
+    
+    def patch(self, id):
+        plant = db.session.get(Plant, id)
+        
+        if not plant:
+            return make_response({"msg": f"No plant with ID {id}"}, 404)
+        
+        
+        for attr in request.json:
+            setattr(plant, attr, request.json[attr])
+        db.session.commit()
+                
+        return make_response(plant.to_dict(), 200)
+    
+    def delete(self, id):
+        plant = db.session.get(Plant, id)
+        db.session.delete(plant)
+        db.session.commit()
+        
+        return make_response({}, 204)
+        
 
 api.add_resource(PlantByID, '/plants/<int:id>')
 
